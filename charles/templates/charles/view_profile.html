@@ -1,0 +1,19 @@
+{% extends "charles/base.html" %}
+
+{% block title %}Profile — Charles Auth{% endblock %}
+
+{% block body %}
+<div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+    <h2 style="margin-bottom: 15px; color: #111;">{{ profile_user.username }}'s Profile</h2>
+    <p style="margin: 0 0 10px; color: #475569;"><strong>Email:</strong> {{ profile_user.email|default:'—' }}</p>
+    <p style="margin: 0 0 10px; color: #475569;"><strong>Joined:</strong> {{ profile_user.date_joined|date:'M j, Y' }}</p>
+    <p style="margin: 0 0 10px; color: #475569;"><strong>Bio:</strong></p>
+    <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; color: #334155; min-height: 100px;">
+        {{ profile_obj.bio|default:'No bio provided.' }}
+    </div>
+</div>
+
+<div class="nav-links" style="margin-top: 20px;">
+    <a href="{% url 'charles:dashboard' %}">← Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     # --- Protected ---
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/", views.profile, name="profile"),
+    path("profile/<int:pk>/", views.view_profile, name="view_profile"),
     path("password-change/", views.password_change, name="password_change"),
     path("logout/", views.user_logout, name="logout"),
 ]

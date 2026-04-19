@@ -8,7 +8,7 @@ password change, and profile management.
 Docs: https://docs.djangoproject.com/en/5.2/topics/testing/
 """
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -295,3 +295,46 @@ class ProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.bio, "Hello, I'm a test user.")
+
+
+class ViewProfileIDORTests(TestCase):
+    """Test object-level access control for charles view_profile."""
+
+    def setUp(self):
+        self.client = Client()
+        self.group, _ = Group.objects.get_or_create(name="instructor")
+        self.alice = User.objects.create_user(username="alice", password="SecurePass123!")
+        self.bob = User.objects.create_user(username="bob", password="SecurePass123!")
+        self.instructor = User.objects.create_user(username="prof", password="SecurePass123!")
+        self.instructor.groups.add(self.group)
+
+    def _url(self, user):
+        return reverse("charles:view_profile", kwargs={"pk": user.pk})
+
+    def test_anonymous_users_are_redirected_to_login(self):
+        response = self.client.get(self._url(self.alice))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("charles:login"), response.url)
+
+    def test_profile_owner_can_view_their_profile(self):
+        self.client.login(username="alice", password="SecurePass123!")
+        response = self.client.get(self._url(self.alice))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/view_profile.html")
+        self.assertContains(response, "alice's Profile")
+
+    def test_regular_user_cannot_view_another_users_profile(self):
+        self.client.login(username="alice", password="SecurePass123!")
+        response = self.client.get(self._url(self.bob))
+        self.assertEqual(response.status_code, 403)
+
+    def test_instructor_can_view_any_profile(self):
+        self.client.login(username="prof", password="SecurePass123!")
+        response = self.client.get(self._url(self.bob))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/view_profile.html")
+
+    def test_nonexistent_profile_returns_404_for_instructor(self):
+        self.client.login(username="prof", password="SecurePass123!")
+        response = self.client.get(reverse("charles:view_profile", kwargs={"pk": 9999}))
+        self.assertEqual(response.status_code, 404)

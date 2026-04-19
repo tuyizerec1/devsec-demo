@@ -7,8 +7,10 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import LoginForm, ProfileUpdateForm, RegistrationForm
@@ -104,6 +106,28 @@ def password_change(request):
         form = PasswordChangeForm(user=request.user)
 
     return render(request, "charles/password_change.html", {"form": form})
+
+
+@login_required
+def view_profile(request, pk):
+    """Read-only view for a single user's profile.
+
+    The URL includes a predictable user primary key. This view explicitly
+    verifies that the requesting user either owns the profile or has the
+    instructor role before returning any profile data.
+    """
+    is_instructor = request.user.groups.filter(name="instructor").exists()
+
+    if request.user.pk != pk and not is_instructor:
+        raise PermissionDenied
+
+    target_user = get_object_or_404(User, pk=pk)
+    profile_obj, _ = Profile.objects.get_or_create(user=target_user)
+
+    return render(request, "charles/view_profile.html", {
+        "profile_user": target_user,
+        "profile_obj": profile_obj,
+    })
 
 
 @login_required
