@@ -1,0 +1,65 @@
+{% extends "charles/base.html" %}
+
+{% block title %}Register — Charles Auth{% endblock %}
+
+{% block body %}
+<form method="post" novalidate>
+    {% csrf_token %}
+    <h2 style="margin-bottom: 20px; color: #333;">Create Your Account</h2>
+
+    <div class="form-group">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <ul class="errorlist">
+            {% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if form.username.help_text %}
+        <small class="helptext">{{ form.username.help_text|safe }}</small>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <ul class="errorlist">
+            {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+        <ul class="errorlist">
+            {% for error in form.password1.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if form.password1.help_text %}
+        <small class="helptext">{{ form.password1.help_text|safe }}</small>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+        <ul class="errorlist">
+            {% for error in form.password2.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if form.password2.help_text %}
+        <small class="helptext">{{ form.password2.help_text|safe }}</small>
+        {% endif %}
+    </div>
+
+    <button type="submit">Create Account</button>
+</form>
+
+<div class="nav-links">
+    Already have an account? <a href="{% url 'charles:login' %}">Sign in</a>
+</div>
+{% endblock %}

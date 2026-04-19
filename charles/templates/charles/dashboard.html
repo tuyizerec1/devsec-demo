@@ -1,0 +1,23 @@
+{% extends "charles/base.html" %}
+
+{% block title %}Dashboard — Charles Auth{% endblock %}
+
+{% block body %}
+<div style="text-align: center; padding: 20px 0;">
+    <h2 style="color: #333; margin-bottom: 15px;">Welcome, {{ request.user.username }}! 👋</h2>
+    <p style="color: #666; margin-bottom: 30px;">You are successfully logged in to the Charles Auth Service.</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <a href="{% url 'charles:profile' %}" style="display: block; padding: 15px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#e8e8e8'" onmouseout="this.style.background='#f0f0f0'">
+            👤 View Profile
+        </a>
+        <a href="{% url 'charles:password_change' %}" style="display: block; padding: 15px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#e8e8e8'" onmouseout="this.style.background='#f0f0f0'">
+            🔑 Change Password
+        </a>
+    </div>
+</div>
+
+<div class="nav-links">
+    <a href="{% url 'charles:logout' %}">Sign Out</a>
+</div>
+{% endblock %}
