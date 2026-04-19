@@ -26,4 +26,7 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("password-change/", views.password_change, name="password_change"),
     path("logout/", views.user_logout, name="logout"),
+
+    # --- Privileged ---
+    path("roster/", views.roster, name="roster"),
 ]

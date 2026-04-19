@@ -8,7 +8,7 @@ password change, and profile management.
 Docs: https://docs.djangoproject.com/en/5.2/topics/testing/
 """
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -295,3 +295,36 @@ class ProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.bio, "Hello, I'm a test user.")
+
+
+class RoleBasedAccessTests(TestCase):
+    """Tests for role-based access control in the charles app."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="SecurePass123!",
+        )
+        self.instructor_group = Group.objects.create(name="instructor")
+        self.roster_url = reverse("charles:roster")
+
+    def test_anonymous_users_are_redirected_from_roster(self):
+        response = self.client.get(self.roster_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("charles:login"), response.url)
+
+    def test_standard_users_cannot_view_roster(self):
+        self.client.login(username="testuser", password="SecurePass123!")
+        response = self.client.get(self.roster_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_instructors_can_view_roster(self):
+        self.user.groups.add(self.instructor_group)
+        self.client.login(username="testuser", password="SecurePass123!")
+
+        response = self.client.get(self.roster_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/roster.html")
+        self.assertContains(response, "Member Roster")

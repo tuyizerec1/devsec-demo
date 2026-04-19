@@ -1,0 +1,15 @@
+{% extends "charles/base.html" %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block body %}
+<div style="text-align: center; padding: 4rem 1rem;">
+  <p style="font-size: 5rem; color: #c026d3; margin-bottom: 1rem;">403</p>
+  <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem; color: #111;">Access Denied</h2>
+  <p style="max-width: 36rem; margin: 0 auto 1.5rem; color: #475569;">
+    You do not have permission to view this page.
+    If you think this is an error, contact an instructor or administrator.
+  </p>
+  <a href="{% url 'charles:dashboard' %}" style="color: #4f46e5; font-weight: 600;">Return to dashboard</a>
+</div>
+{% endblock %}
