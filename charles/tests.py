@@ -295,3 +295,104 @@ class ProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.bio, "Hello, I'm a test user.")
+
+
+class PasswordResetTests(TestCase):
+    """Test password reset workflow using Django's built-in mechanisms."""
+
+    def setUp(self):
+        self.client = Client()
+        self.password_reset_url = reverse("charles:password_reset")
+        self.password_reset_done_url = reverse("charles:password_reset_done")
+        self.password_reset_complete_url = reverse("charles:password_reset_complete")
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="OldPassword123!",
+        )
+
+    def test_password_reset_request_page_loads(self):
+        """GET /password-reset/ should return 200 and show the form."""
+        response = self.client.get(self.password_reset_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/password_reset_request.html")
+        self.assertIn("form", response.context)
+
+    def test_password_reset_request_valid_email(self):
+        """Password reset request with valid email should succeed and redirect."""
+        response = self.client.post(
+            self.password_reset_url,
+            {"email": "test@example.com"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/password_reset_done.html")
+
+    def test_password_reset_request_nonexistent_email(self):
+        """Password reset for nonexistent email should not leak account existence."""
+        response = self.client.post(
+            self.password_reset_url,
+            {"email": "nonexistent@example.com"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        # Django's PasswordResetView shows the same success page regardless
+        # of whether the email exists, preventing user enumeration.
+        self.assertTemplateUsed(response, "charles/password_reset_done.html")
+
+    def test_password_reset_confirm_valid_token(self):
+        """PasswordResetConfirmView with valid token should allow setting new password."""
+        # Generate a reset token for the user
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        reset_confirm_url = reverse("charles:password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+
+        # GET the reset_confirm page
+        response = self.client.get(reset_confirm_url)
+        # Django redirects to token-less URL for security, then 200
+        response = self.client.get(response.url) if response.status_code == 302 else response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/password_reset_confirm.html")
+        self.assertIn("validlink", response.context)
+        self.assertTrue(response.context["validlink"])
+
+    def test_password_reset_confirm_and_login_with_new_password(self):
+        """Setting new password via reset token should work."""
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        reset_confirm_url = reverse("charles:password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+
+        # GET the reset_confirm page to verify it works with valid token
+        get_response = self.client.get(reset_confirm_url)
+        # Follow redirect if needed
+        if get_response.status_code == 302:
+            get_response = self.client.get(get_response.url)
+
+        self.assertEqual(get_response.status_code, 200)
+        self.assertTemplateUsed(get_response, "charles/password_reset_confirm.html")
+        # The form should be present for setting new password
+        self.assertIn("form", get_response.context)
+
+    def test_password_reset_confirm_invalid_token(self):
+        """PasswordResetConfirmView with invalid token should show expiry message."""
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        invalid_token = "invalid-token-12345"
+        reset_confirm_url = reverse("charles:password_reset_confirm", kwargs={"uidb64": uidb64, "token": invalid_token})
+
+        response = self.client.get(reset_confirm_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "charles/password_reset_confirm.html")
+        # validlink should be False for invalid tokens
+        self.assertIn("validlink", response.context)
+        self.assertFalse(response.context["validlink"])

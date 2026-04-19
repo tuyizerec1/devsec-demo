@@ -10,7 +10,8 @@ Namespacing prevents collisions if other apps define views with the same names.
 Docs: https://docs.djangoproject.com/en/5.2/topics/http/urls/#url-namespaces
 """
 
-from django.urls import path
+from django.contrib.auth import views as auth_views
+from django.urls import path, reverse_lazy
 
 from . import views
 
@@ -20,6 +21,42 @@ urlpatterns = [
     # --- Public ---
     path("register/", views.register, name="register"),
     path("login/", views.user_login, name="login"),
+
+    # --- Password reset (public — user is locked out and cannot authenticate) ---
+    # Django's built-in views handle token generation, validation, and expiry.
+    # We only supply templates and the success redirect URLs.
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="charles/password_reset_request.html",
+            email_template_name="charles/email/password_reset_email.txt",
+            subject_template_name="charles/email/password_reset_subject.txt",
+            success_url=reverse_lazy("charles:password_reset_done"),
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="charles/password_reset_done.html",
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "password-reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="charles/password_reset_confirm.html",
+            success_url=reverse_lazy("charles:password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "password-reset/complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="charles/password_reset_complete.html",
+        ),
+        name="password_reset_complete",
+    ),
 
     # --- Protected ---
     path("dashboard/", views.dashboard, name="dashboard"),
