@@ -3,16 +3,18 @@ charles/views.py — authentication lifecycle views.
 Docs: https://docs.djangoproject.com/en/5.2/topics/auth/default/
 """
 
+import json
 from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 from .forms import LoginForm, ProfileUpdateForm, RegistrationForm
 from .models import LoginAttempt, Profile
@@ -123,6 +125,41 @@ def profile(request):
         form = ProfileUpdateForm(instance=profile_obj)
 
     return render(request, "charles/profile.html", {"form": form})
+
+
+@login_required
+@require_POST
+def update_profile_bio(request):
+    """
+    Secure AJAX endpoint for profile bio updates.
+
+    This view intentionally relies on Django's normal CSRF middleware rather
+    than exemption shortcuts. The browser must send the CSRF token in the
+    X-CSRFToken header for the update to succeed.
+    """
+
+    profile_obj, _ = Profile.objects.get_or_create(user=request.user)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"ok": False, "errors": {"__all__": ["Invalid JSON payload."]}},
+            status=400,
+        )
+
+    form = ProfileUpdateForm(payload, instance=profile_obj)
+    if form.is_valid():
+        profile = form.save()
+        return JsonResponse(
+            {
+                "ok": True,
+                "bio": profile.bio,
+                "message": "Your profile has been updated.",
+            }
+        )
+
+    return JsonResponse({"ok": False, "errors": form.errors}, status=400)
 
 
 @login_required

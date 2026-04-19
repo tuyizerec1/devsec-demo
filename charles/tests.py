@@ -8,6 +8,7 @@ password change, and profile management.
 Docs: https://docs.djangoproject.com/en/5.2/topics/testing/
 """
 
+import json
 from datetime import timedelta
 
 from django.contrib.auth.models import User
@@ -277,6 +278,7 @@ class ProfileTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.profile_url = reverse("charles:profile")
+        self.profile_update_bio_url = reverse("charles:profile_update_bio")
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
@@ -299,6 +301,69 @@ class ProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.bio, "Hello, I'm a test user.")
+
+
+class ProfileAjaxCsrfTests(TestCase):
+    """Test CSRF enforcement for the custom AJAX profile update flow."""
+
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=True)
+        self.profile_url = reverse("charles:profile")
+        self.profile_update_bio_url = reverse("charles:profile_update_bio")
+        self.user = User.objects.create_user(
+            username="ajaxuser",
+            email="ajax@example.com",
+            password="SecurePass123!",
+        )
+        self.client.force_login(self.user)
+
+    def get_csrf_token(self):
+        self.client.get(self.profile_url)
+        return self.client.cookies["csrftoken"].value
+
+    def test_ajax_profile_update_without_csrf_token_is_rejected(self):
+        response = self.client.post(
+            self.profile_update_bio_url,
+            data=json.dumps({"bio": "Missing CSRF token"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.bio, "")
+
+    def test_ajax_profile_update_with_csrf_token_succeeds(self):
+        csrf_token = self.get_csrf_token()
+        response = self.client.post(
+            self.profile_update_bio_url,
+            data=json.dumps({"bio": "Updated over AJAX"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "ok": True,
+                "bio": "Updated over AJAX",
+                "message": "Your profile has been updated.",
+            },
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.bio, "Updated over AJAX")
+
+    def test_regular_profile_form_still_works_with_valid_csrf_token(self):
+        csrf_token = self.get_csrf_token()
+        response = self.client.post(
+            self.profile_url,
+            {
+                "bio": "Updated through the normal form",
+                "csrfmiddlewaretoken": csrf_token,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.bio, "Updated through the normal form")
 
 
 class PasswordResetTests(TestCase):

@@ -3,7 +3,7 @@
 {% block title %}Profile — Charles Auth{% endblock %}
 
 {% block body %}
-<form method="post" novalidate>
+<form id="profile-form" method="post" novalidate>
     {% csrf_token %}
     <h2 style="margin-bottom: 20px; color: #333;">Your Profile</h2>
 
@@ -23,10 +23,61 @@
         <small class="helptext">Tell us a bit about yourself (max 500 characters).</small>
     </div>
 
+    <div id="profile-status" style="display: none; margin-bottom: 20px; padding: 12px 15px; border-radius: 4px;"></div>
+
     <button type="submit">Save Profile</button>
 </form>
 
 <div class="nav-links">
     <a href="{% url 'charles:dashboard' %}">← Back to Dashboard</a>
 </div>
+
+<script>
+(() => {
+    const form = document.getElementById("profile-form");
+    const bioField = document.getElementById("id_bio");
+    const csrfField = form ? form.querySelector('input[name="csrfmiddlewaretoken"]') : null;
+    const statusBox = document.getElementById("profile-status");
+
+    if (!form || !bioField || !csrfField || !statusBox || !window.fetch) {
+        return;
+    }
+
+    function showStatus(message, isError) {
+        statusBox.textContent = message;
+        statusBox.style.display = "block";
+        statusBox.style.background = isError ? "#f8d7da" : "#d1e7dd";
+        statusBox.style.color = isError ? "#721c24" : "#0f5132";
+        statusBox.style.border = isError ? "1px solid #f5c6cb" : "1px solid #badbcc";
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        try {
+            const response = await fetch("{% url 'charles:profile_update_bio' %}", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfField.value,
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({ bio: bioField.value })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                const firstError = data.errors ? Object.values(data.errors)[0] : null;
+                showStatus(Array.isArray(firstError) ? firstError[0] : "Could not save your profile.", true);
+                return;
+            }
+
+            showStatus(data.message || "Your profile has been updated.", false);
+        } catch (error) {
+            form.submit();
+        }
+    });
+})();
+</script>
 {% endblock %}

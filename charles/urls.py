@@ -61,6 +61,7 @@ urlpatterns = [
     # --- Protected ---
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/", views.profile, name="profile"),
+    path("profile/update-bio/", views.update_profile_bio, name="profile_update_bio"),
     path("password-change/", views.password_change, name="password_change"),
     path("logout/", views.user_logout, name="logout"),
 ]
