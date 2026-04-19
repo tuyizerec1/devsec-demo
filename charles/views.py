@@ -3,16 +3,23 @@ charles/views.py — authentication lifecycle views.
 Docs: https://docs.djangoproject.com/en/5.2/topics/auth/default/
 """
 
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import LoginForm, ProfileUpdateForm, RegistrationForm
-from .models import Profile
+from .models import LoginAttempt, Profile
+
+
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_DURATION = timedelta(minutes=15)
 
 
 def register(request):
@@ -37,11 +44,34 @@ def user_login(request):
         return redirect("charles:dashboard")
 
     if request.method == "POST":
+        raw_username = request.POST.get("username", "").strip()
+        attempt_key = raw_username.lower()
+        attempt, _ = LoginAttempt.objects.get_or_create(username=attempt_key)
+        now = timezone.now()
+
+        if attempt.locked_until and attempt.locked_until > now:
+            remaining = max(1, round((attempt.locked_until - now).total_seconds() / 60))
+            messages.error(
+                request,
+                f"Too many failed login attempts. Please wait {remaining} minute(s) before trying again.",
+            )
+            return render(request, "charles/login.html", {
+                "form": LoginForm(),
+                "next": request.POST.get("next", ""),
+            })
+
+        if attempt.locked_until and attempt.locked_until <= now:
+            attempt.failed_count = 0
+            attempt.last_failed_at = None
+            attempt.locked_until = None
+            attempt.save(update_fields=["failed_count", "last_failed_at", "locked_until"])
+
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             messages.success(request, f"Welcome back, {user.username}!")
+            attempt.delete()
 
             # Open-redirect guard: validate ?next= before following it.
             # Without this check an attacker could craft a link that sends
@@ -56,6 +86,13 @@ def user_login(request):
                 return HttpResponseRedirect(next_url)
 
             return redirect("charles:dashboard")
+        else:
+            attempt.failed_count += 1
+            attempt.last_failed_at = now
+            if attempt.failed_count >= LOCKOUT_THRESHOLD:
+                attempt.locked_until = now + LOCKOUT_DURATION
+            attempt.save()
+
     else:
         form = LoginForm()
 

@@ -10,6 +10,7 @@ Docs: https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#extending-t
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class Profile(models.Model):
@@ -41,3 +42,29 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+
+
+class LoginAttempt(models.Model):
+    """
+    Tracks consecutive failed logins for a normalised username.
+
+    We key on the submitted username rather than a User foreign key so the
+    throttle still works for unknown usernames without leaking which accounts
+    exist in the database.
+    """
+
+    username = models.CharField(max_length=150, unique=True, db_index=True)
+    failed_count = models.PositiveIntegerField(default=0)
+    last_failed_at = models.DateTimeField(null=True, blank=True)
+    locked_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Login attempt"
+        verbose_name_plural = "Login attempts"
+
+    def __str__(self):
+        return f"{self.username} - {self.failed_count} failed attempt(s)"
+
+    @property
+    def is_locked(self):
+        return self.locked_until is not None and self.locked_until > timezone.now()

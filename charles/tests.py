@@ -8,11 +8,15 @@ password change, and profile management.
 Docs: https://docs.djangoproject.com/en/5.2/topics/testing/
 """
 
+from datetime import timedelta
+
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from .models import Profile
+from .models import LoginAttempt, Profile
 
 
 class RegistrationTests(TestCase):
@@ -396,3 +400,117 @@ class PasswordResetTests(TestCase):
         # validlink should be False for invalid tokens
         self.assertIn("validlink", response.context)
         self.assertFalse(response.context["validlink"])
+
+
+class LoginBruteForceTests(TestCase):
+    """Test protection against login brute-force attacks."""
+
+    def setUp(self):
+        self.login_url = reverse("charles:login")
+        self.user = User.objects.create_user(
+            username="targetuser",
+            password="CorrectPassword123!",
+        )
+        self.dashboard_url = reverse("charles:dashboard")
+
+    def fail_login(self, username="targetuser", count=1):
+        response = None
+        for _ in range(count):
+            response = self.client.post(self.login_url, {
+                "username": username,
+                "password": "WrongPassword123!",
+            })
+        return response
+
+    def test_valid_login_still_redirects_to_dashboard(self):
+        response = self.client.post(self.login_url, {
+            "username": "targetuser",
+            "password": "CorrectPassword123!",
+        })
+        self.assertRedirects(response, self.dashboard_url)
+
+    def test_four_failures_do_not_lock_account(self):
+        self.fail_login(count=4)
+        attempt = LoginAttempt.objects.get(username="targetuser")
+        self.assertEqual(attempt.failed_count, 4)
+        self.assertIsNone(attempt.locked_until)
+
+    def test_repeated_failures_trigger_lockout(self):
+        self.fail_login(count=5)
+        attempt = LoginAttempt.objects.get(username="targetuser")
+        self.assertEqual(attempt.failed_count, 5)
+        self.assertIsNotNone(attempt.locked_until)
+        self.assertGreater(attempt.locked_until, timezone.now())
+
+    def test_locked_account_rejects_correct_password(self):
+        LoginAttempt.objects.create(
+            username="targetuser",
+            failed_count=5,
+            locked_until=timezone.now() + timedelta(minutes=10),
+        )
+        response = self.client.post(self.login_url, {
+            "username": "targetuser",
+            "password": "CorrectPassword123!",
+        }, follow=True)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+        self.assertEqual(response.status_code, 200)
+
+    def test_lockout_message_mentions_wait_time(self):
+        LoginAttempt.objects.create(
+            username="targetuser",
+            failed_count=5,
+            locked_until=timezone.now() + timedelta(minutes=10),
+        )
+        response = self.client.post(self.login_url, {
+            "username": "targetuser",
+            "password": "CorrectPassword123!",
+        })
+        message_texts = [str(message) for message in get_messages(response.wsgi_request)]
+        self.assertTrue(any("minute" in message for message in message_texts))
+
+    def test_successful_login_resets_counter(self):
+        LoginAttempt.objects.create(username="targetuser", failed_count=3)
+        self.client.post(self.login_url, {
+            "username": "targetuser",
+            "password": "CorrectPassword123!",
+        })
+        self.assertFalse(LoginAttempt.objects.filter(username="targetuser").exists())
+
+    def test_lockout_expiry_allows_login_again(self):
+        LoginAttempt.objects.create(
+            username="targetuser",
+            failed_count=5,
+            locked_until=timezone.now() - timedelta(seconds=1),
+        )
+        response = self.client.post(self.login_url, {
+            "username": "targetuser",
+            "password": "CorrectPassword123!",
+        })
+        self.assertRedirects(response, self.dashboard_url)
+
+    def test_lockout_expiry_resets_counter(self):
+        LoginAttempt.objects.create(
+            username="targetuser",
+            failed_count=5,
+            locked_until=timezone.now() - timedelta(seconds=1),
+        )
+        self.fail_login(count=1)
+        attempt = LoginAttempt.objects.get(username="targetuser")
+        self.assertEqual(attempt.failed_count, 1)
+        self.assertIsNone(attempt.locked_until)
+
+    def test_username_tracking_is_case_insensitive(self):
+        self.fail_login(username="TargetUser", count=3)
+        self.fail_login(username="TARGETUSER", count=2)
+        attempt = LoginAttempt.objects.get(username="targetuser")
+        self.assertEqual(attempt.failed_count, 5)
+        self.assertIsNotNone(attempt.locked_until)
+
+    def test_lockout_is_scoped_per_username(self):
+        User.objects.create_user(username="otheruser", password="CorrectPassword123!")
+        self.fail_login(count=5)
+        response = self.client.post(self.login_url, {
+            "username": "otheruser",
+            "password": "CorrectPassword123!",
+        })
+        self.assertRedirects(response, self.dashboard_url)
