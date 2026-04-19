@@ -98,6 +98,33 @@ class RegistrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(username="testuser").exists())
 
+    def test_safe_internal_next_redirects_after_registration(self):
+        response = self.client.post(
+            self.register_url,
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password1": "SecurePass123!",
+                "password2": "SecurePass123!",
+                "next": reverse("charles:profile"),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("charles:profile"))
+
+    def test_unsafe_external_next_is_rejected_after_registration(self):
+        response = self.client.post(
+            self.register_url,
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "password1": "SecurePass123!",
+                "password2": "SecurePass123!",
+                "next": "https://evil.example/phish",
+            },
+        )
+        self.assertRedirects(response, reverse("charles:dashboard"), fetch_redirect_response=False)
+
 
 class LoginLogoutTests(TestCase):
     """Test login and logout flows."""
@@ -169,6 +196,70 @@ class LoginLogoutTests(TestCase):
         response = self.client.post(self.logout_url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+
+class OpenRedirectTests(TestCase):
+    """Test redirect target validation in authentication flows."""
+
+    def setUp(self):
+        self.client = Client()
+        self.login_url = reverse("charles:login")
+        self.register_url = reverse("charles:register")
+        self.dashboard_url = reverse("charles:dashboard")
+        self.profile_url = reverse("charles:profile")
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="SecurePass123!",
+        )
+
+    def login_with_next(self, next_url=None):
+        data = {
+            "username": "testuser",
+            "password": "SecurePass123!",
+        }
+        if next_url is not None:
+            data["next"] = next_url
+        return self.client.post(self.login_url, data)
+
+    def test_login_follows_safe_internal_next(self):
+        response = self.login_with_next(self.profile_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.profile_url)
+
+    def test_login_rejects_external_http_next(self):
+        response = self.login_with_next("http://evil.com/steal")
+        self.assertRedirects(response, self.dashboard_url, fetch_redirect_response=False)
+
+    def test_login_rejects_protocol_relative_next(self):
+        response = self.login_with_next("//evil.com/steal")
+        self.assertRedirects(response, self.dashboard_url, fetch_redirect_response=False)
+
+    def test_login_rejects_javascript_scheme_next(self):
+        response = self.login_with_next("javascript:alert(document.cookie)")
+        self.assertRedirects(response, self.dashboard_url, fetch_redirect_response=False)
+
+    def test_login_page_preserves_safe_internal_next(self):
+        response = self.client.get(f"{self.login_url}?next={self.profile_url}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'value="{self.profile_url}"', html=False)
+
+    def test_login_page_drops_unsafe_external_next(self):
+        response = self.client.get(f"{self.login_url}?next=https://evil.example/phish")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value=""', html=False)
+        self.assertNotContains(response, "evil.example")
+
+    def test_register_page_preserves_safe_internal_next(self):
+        response = self.client.get(f"{self.register_url}?next={self.profile_url}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'value="{self.profile_url}"', html=False)
+
+    def test_register_page_drops_unsafe_external_next(self):
+        response = self.client.get(f"{self.register_url}?next=https://evil.example/phish")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value=""', html=False)
+        self.assertNotContains(response, "evil.example")
 
 
 class ProtectedViewTests(TestCase):

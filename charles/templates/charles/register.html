@@ -56,10 +56,13 @@
         {% endif %}
     </div>
 
+    <input type="hidden" name="next" value="{{ next }}">
+
     <button type="submit">Create Account</button>
 </form>
 
 <div class="nav-links">
-    Already have an account? <a href="{% url 'charles:login' %}">Sign in</a>
+    Already have an account?
+    <a href="{% url 'charles:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign in</a>
 </div>
 {% endblock %}

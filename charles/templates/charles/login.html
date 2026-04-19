@@ -39,6 +39,7 @@
 </form>
 
 <div class="nav-links">
-    Don't have an account? <a href="{% url 'charles:register' %}">Sign up</a>
+    Don't have an account?
+    <a href="{% url 'charles:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign up</a>
 </div>
 {% endblock %}

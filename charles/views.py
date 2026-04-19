@@ -24,8 +24,25 @@ LOCKOUT_THRESHOLD = 5
 LOCKOUT_DURATION = timedelta(minutes=15)
 
 
+def get_safe_next_url(request):
+    """Return a same-origin next= destination or an empty string."""
+
+    next_url = request.POST.get("next") or request.GET.get("next", "")
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return ""
+
+
 def register(request):
+    next_url = get_safe_next_url(request)
+
     if request.user.is_authenticated:
+        if next_url:
+            return HttpResponseRedirect(next_url)
         return redirect("charles:dashboard")
 
     if request.method == "POST":
@@ -34,15 +51,21 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, f"Welcome, {user.username}! Your account is ready.")
+            if next_url:
+                return HttpResponseRedirect(next_url)
             return redirect("charles:dashboard")
     else:
         form = RegistrationForm()
 
-    return render(request, "charles/register.html", {"form": form})
+    return render(request, "charles/register.html", {"form": form, "next": next_url})
 
 
 def user_login(request):
+    next_url = get_safe_next_url(request)
+
     if request.user.is_authenticated:
+        if next_url:
+            return HttpResponseRedirect(next_url)
         return redirect("charles:dashboard")
 
     if request.method == "POST":
@@ -59,7 +82,7 @@ def user_login(request):
             )
             return render(request, "charles/login.html", {
                 "form": LoginForm(),
-                "next": request.POST.get("next", ""),
+                "next": next_url,
             })
 
         if attempt.locked_until and attempt.locked_until <= now:
@@ -75,16 +98,8 @@ def user_login(request):
             messages.success(request, f"Welcome back, {user.username}!")
             attempt.delete()
 
-            # Open-redirect guard: validate ?next= before following it.
-            # Without this check an attacker could craft a link that sends
-            # the victim to an external site after a successful login.
-            # Docs: https://docs.djangoproject.com/en/5.2/ref/utils/#django.utils.http.url_has_allowed_host_and_scheme
-            next_url = request.POST.get("next") or request.GET.get("next", "")
-            if next_url and url_has_allowed_host_and_scheme(
-                url=next_url,
-                allowed_hosts={request.get_host()},
-                require_https=request.is_secure(),
-            ):
+            # Only same-origin redirect targets are ever followed.
+            if next_url:
                 return HttpResponseRedirect(next_url)
 
             return redirect("charles:dashboard")
@@ -100,7 +115,7 @@ def user_login(request):
 
     return render(request, "charles/login.html", {
         "form": form,
-        "next": request.GET.get("next", ""),
+        "next": next_url,
     })
 
 
