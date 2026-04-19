@@ -1,0 +1,101 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Contact{% endblock %}
+{% block meta_description %}In the intersection of shadow and substance, every collaboration begins with a whisper. Reach out to discuss curation, studio visits, or archival inquiries.{% endblock %}
+
+{% block content %}
+<main class="pt-32 pb-24 min-h-screen">
+  <div class="max-w-screen-2xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+    <!-- Headline Section (Asymmetric Left) -->
+    <div class="lg:col-span-5 space-y-12">
+      <div class="space-y-4">
+        <span class="text-secondary font-label text-[10px] uppercase tracking-[0.3em]">Direct Communication</span>
+        <h1 class="text-6xl md:text-8xl font-headline italic leading-tight text-on-surface">
+          Feel the <br/> <span class="text-primary not-italic">Texture</span>
+        </h1>
+      </div>
+      <p class="text-on-surface-variant font-body text-lg leading-relaxed max-w-md">
+        In the intersection of shadow and substance, every collaboration begins with a whisper. Reach out to discuss curation, studio visits, or archival inquiries.
+      </p>
+      <div class="pt-8 space-y-8">
+        <div class="group cursor-pointer">
+          <span class="text-secondary font-label text-[10px] uppercase tracking-[0.2em] block mb-2">Social Inquiries</span>
+          <div class="flex gap-6 items-center">
+            <a class="text-on-surface hover:text-primary transition-colors duration-300 font-label text-sm" href="#">Instagram</a>
+            <a class="text-on-surface hover:text-primary transition-colors duration-300 font-label text-sm" href="#">Behance</a>
+            <a class="text-on-surface hover:text-primary transition-colors duration-300 font-label text-sm" href="#">Studio V</a>
+          </div>
+        </div>
+      </div>
+      <!-- Decorative Asset -->
+      <div class="relative w-full aspect-[4/5] bg-surface-container-low overflow-hidden">
+        <img class="w-full h-full object-cover grayscale opacity-60 mix-blend-luminosity"
+             alt="Close-up of charred Shou Sugi Ban wood texture with deep cracks and subtle highlights under dramatic spotlight"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZBcXd0sCjYlzHAx5Ks7CuKANmVGigUHRjTndFuxREJJvDN_ikJofkEXy3Tb3RSK8pSEEgU84mOG2JsQhXriwDHb74fs4fFS2jnbnRAt0cpcRcGRo9GR_b75NUux0-mIpIQBg5x5e65QfWObyApRwzVCR_vhSVbYTAr8IaoiKdgDaWWqHI_6bg13gbkAiJvEyJRmZrqoDIOgQc_pDBuzDgeLFrUcEbwwdFVVOQF9v5BgMciD42KsXZnjPcQDN-wK_y_LIHd6uvCtRU"/>
+        <div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+      </div>
+    </div>
+
+    <!-- Form Section (Asymmetric Right) -->
+    <div class="lg:col-span-7 lg:mt-32">
+      <div class="bg-surface-container-low p-12 lg:p-20 relative">
+        <!-- Subtle Ambient Glow -->
+        <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary-container opacity-10 blur-[100px] pointer-events-none"></div>
+        <form class="space-y-12 relative z-10" method="post" action="#">
+          {% csrf_token %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-2">
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-name">Your Identity</label>
+              <input id="contact-name" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body transition-all"
+                     placeholder="NAME / ORGANIZATION" type="text" name="name"/>
+            </div>
+            <div class="space-y-2">
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-email">Digital Coordinates</label>
+              <input id="contact-email" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body transition-all"
+                     placeholder="EMAIL ADDRESS" type="email" name="email"/>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]">The Nature of Inquiry</label>
+            <div class="flex flex-wrap gap-4 pt-4">
+              <button class="px-6 py-2 border border-outline-variant/20 text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all" type="button">Gallery</button>
+              <button class="px-6 py-2 border border-outline-variant/20 text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all" type="button">Studio</button>
+              <button class="px-6 py-2 border border-outline-variant/20 text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all" type="button">Press</button>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-message">The Message</label>
+            <textarea id="contact-message" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body resize-none transition-all"
+                      placeholder="DESCRIBE YOUR VISION..." rows="4" name="message"></textarea>
+          </div>
+          <div class="pt-8 flex items-center justify-between">
+            <button class="bg-gradient-to-r from-primary to-primary-dim px-12 py-5 text-on-primary font-label text-[11px] uppercase tracking-[0.3em] font-bold hover:brightness-110 transition-all" type="submit">
+              Dispatch Message
+            </button>
+            <div class="hidden sm:flex items-center gap-4 text-on-surface-variant group">
+              <span class="text-[10px] uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Privacy Policy</span>
+              <span class="material-symbols-outlined text-sm">north_east</span>
+            </div>
+          </div>
+        </form>
+      </div>
+      <!-- Secondary Info Cards -->
+      <div class="mt-16 grid grid-cols-2 gap-8">
+        <div class="bg-surface-container-highest p-8 flex flex-col justify-between aspect-square">
+          <span class="material-symbols-outlined text-primary text-4xl">dark_mode</span>
+          <div>
+            <p class="text-on-surface font-headline italic text-2xl">Paris, France</p>
+            <p class="text-secondary font-label text-[10px] uppercase tracking-widest">GMT +1 Studio Hours</p>
+          </div>
+        </div>
+        <div class="relative overflow-hidden group">
+          <img class="w-full h-full object-cover grayscale transition-transform duration-1000 group-hover:scale-110"
+               alt="Minimalist dark grey stone sculpture with smooth curves in a dimly lit studio environment with deep shadows"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq3vlgJEXCgLsbKDlp4B2sXwiEEm8slwSfV3zO_AFR-nD7WtKDG_W5BwoN-nCTTVOcfF2VEudRhtNkQs59dMPFQXTk3OF8iG68Lvp01VRR0MzMk56h3NTS5khHfp-DKthXEh-vlamnUOTh9Ux36RLIltdSLpv-ZiD38fY8HUBm_EHhBIHl0XGq1_sjHO7vqvY0eIRxAcoaLh6GRkAusy1NL4RnkCXNOl45xrg-upBbJji1XJgfve6t0iwugqHo37SN08oJgTF_MrJb"/>
+          <div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

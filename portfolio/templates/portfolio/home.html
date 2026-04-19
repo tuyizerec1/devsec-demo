@@ -1,0 +1,119 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Home{% endblock %}
+{% block meta_description %}In the silence of the studio, form meets fire. A curation of tactile artifacts forged in shadow and light.{% endblock %}
+
+{% block content %}
+<main>
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-end pt-32 pb-24 px-8 overflow-hidden">
+    <!-- Background Image with Tonal Shift -->
+    <div class="absolute inset-0 z-0">
+      <img alt="Close-up of artisan hands working with dark charred wood, dramatic side lighting creating deep shadows and amber highlights"
+           class="w-full h-full object-cover grayscale opacity-40 mix-blend-luminosity"
+           src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKAt02_Mjn3BalbrP25FDMQvN9aXXYQh1dZt0Ue7RpzIGX63fwtw8-cnL145njEOC9dfZo5KmyYJAcSZ5UQ5T9X6tz_tcBOhL_duExnziit-FS2GE3myVoo6lxDdmkkRdQe6ZPwGiXAoN3JxvNui34abryWurPWRj31Xn7NS2rAvIkBtkczFuRnb9obckktXTLlywydjPtUAepwlDkz_ckLLLf56tzM9AfUCqaPTgCxYdHw0g4bJm47ABfSW20QM8kcj-0c_gHoWem"/>
+      <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+    </div>
+    <div class="relative z-10 max-w-screen-2xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+      <div class="md:col-span-8">
+        <p class="font-label text-xs uppercase tracking-[0.4em] text-primary mb-6">Master of Craft</p>
+        <h1 class="font-headline italic text-7xl md:text-9xl font-extrabold tracking-tighter text-on-surface leading-none">
+          The <span class="text-primary-dim">Maker.</span>
+        </h1>
+      </div>
+      <div class="md:col-span-4 md:text-right">
+        <p class="font-body text-secondary-dim text-lg leading-relaxed max-w-sm ml-auto">
+          In the silence of the studio, form meets fire. A curation of tactile artifacts forged in shadow and light.
+        </p>
+        <div class="mt-10 flex md:justify-end">
+          <a href="/gallery/" class="flex items-center gap-4 text-on-surface hover:text-primary transition-colors group">
+            <span class="font-label text-[10px] uppercase tracking-[0.3em]">Explore the Archive</span>
+            <span class="material-symbols-outlined transition-transform duration-500 group-hover:translate-x-2">arrow_right_alt</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Curated Objects (Asymmetric Bento) -->
+  <section class="py-32 px-8 max-w-screen-2xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+      <!-- Large Feature -->
+      <div class="md:col-span-7 aspect-[4/5] bg-surface-container-low group overflow-hidden relative">
+        <img alt="Sculptural black ceramic vase on a pedestal in a dark gallery, sharp light hitting the rim creating a glowing edge"
+             class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxnMfyDARobm_7wI2EL2O5irYzYV93CeC6iiidWhIE9M32EQDfIS8gx3WFCm3xovtZha6bIGTA5WpAZs-tedU6XRyJgfPN7t3DpwpLPILc_eiWU_qxy4j27FiWqldkqv3dWyoTez1fzR6r3LWMi6z5ORwBgl6p3b560eNcp1R6aWZTpsVGC3rLr8giEgBxYQediYQLuMFlqEjfON57yKVBWxyebc23ONNouvAYyayORyJ_EQyUFk2htPToTtGsSedBC3RCGG4QO0dt"/>
+        <div class="absolute bottom-8 left-8">
+          <p class="font-label text-[10px] uppercase tracking-[0.2em] text-secondary-dim mb-2">Series 01</p>
+          <h3 class="font-headline text-3xl italic text-on-surface">Obsidian Form</h3>
+        </div>
+      </div>
+      <!-- Secondary Stack -->
+      <div class="md:col-span-5 flex flex-col gap-12 justify-center">
+        <div class="p-8 border-l border-outline-variant/20">
+          <h2 class="font-headline text-4xl mb-6">Materials derived from the earth.</h2>
+          <p class="text-on-surface-variant font-body leading-relaxed mb-8">
+            Every piece is a dialogue between the organic and the intentional. We use century-old techniques to preserve the soul of the medium while stripping away the unnecessary.
+          </p>
+          <a class="inline-flex items-center gap-2 text-primary group" href="/about/">
+            <span class="font-label text-[10px] uppercase tracking-widest">Read Philosophy</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+        <div class="aspect-square bg-surface-container-low overflow-hidden group">
+          <img alt="Detail of dark wood textures with intricate grain patterns and smoke wisps rising softly"
+               class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqhAWLiCo_7N6sNtxFraXq7HM4RzNOZOZRzwNK-SR713wKu59JitWqtSx4Ejqnqn08WHjvby8iSWOwH75MinD_GTFn465wiaIiWRoTpdc-Q1UDPT-6yuBAMah4hfy5p0BYUzz6McOFYWaTtaxlo4m5E9iPE7O-3PyEgU7s0RGrVMrSgQBwOiZPG7i_QXbQ3OKRF32thuMKTXIsBsnNkkVyRvn2tR-9fbcVSARmxzq_gpGinypIS7-SGjbrAdSy5Oy6Lr4psgt1ZnI-"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Studio Experience (Tonal Shift) -->
+  <section class="bg-surface-container-low py-32 px-8">
+    <div class="max-w-screen-2xl mx-auto flex flex-col items-center text-center">
+      <span class="material-symbols-outlined text-primary text-5xl mb-12">local_fire_department</span>
+      <h2 class="font-headline text-5xl md:text-7xl font-bold tracking-tight text-on-surface mb-8 max-w-3xl">
+        Forged in the heart of the <span class="italic font-normal">charred valley.</span>
+      </h2>
+      <p class="font-body text-secondary-dim max-w-xl text-lg leading-relaxed mb-12">
+        Our studio is more than a workspace; it is a sanctum where raw elements are disciplined into artifacts of permanent beauty.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-12">
+        <div class="aspect-[3/4] bg-surface overflow-hidden">
+          <img alt="Black and white photo of a cluttered artist studio with shadows" class="w-full h-full object-cover grayscale opacity-50"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNHI0VK0EuclxKkZNmzH6mBHIlRMQUophvSdpLA5FpnqTRy-9dTKnqZrQ4V-uRxghloZ-xOobYHNg8-wy4byH-eOVcEH7YfT1oiFCKTQOzdChbV_zbtrj4pULEX1dRjEm3wEtIKjkyCEh-rmoL1QhEGwu0c2m4vdTZ3FqJXKTg9x4fiqjqMcDuKb4ZngbgCmqkc2PFfjeki2bo6LUWZioUA3YKNqDG5WyQrZxj4BIpGmi1aGhNhnhFqsVRgelv2wiJ3h0v2ksSomOp"/>
+        </div>
+        <div class="aspect-[3/4] bg-surface overflow-hidden translate-y-8">
+          <img alt="Close-up of metallic chisel against dark stone with sparks" class="w-full h-full object-cover grayscale opacity-50"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSAW0WTIh-cxt4rKDLWyZZkfc9qvZ0qCctFt9BUfR-yEyVmDm7Boa2P2FEchKI0dOCbaM87ggb-F7yAiGTGUr04zX3Qf73xuKarU1yItVPIrSXGCjG9ksE3e4h5NOhe1k6uxLiYdUOFc4-GKgz4Ei34iDm_tTm1rCU9HUv4E6rT_gFLtGexNA06D_raiddGfFY3GElJuBxa-jZ2GDKN5nzFUl84xBp0rmksIcME9yuPTjElguULFlLCzyR0OmZgAetD8xrVgnlxBgm"/>
+        </div>
+        <div class="aspect-[3/4] bg-surface overflow-hidden">
+          <img alt="Moody interior of a minimalist gallery with a single beam of light" class="w-full h-full object-cover grayscale opacity-50"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPf05OpnhcTRQV6oLwb5vq6RQnWONrr8QvxchGZPf5pz33ZpgYQCBzE8f86IwWe5LQd-93QSGQtg2l4JIQFA5vXYJUrsPn6o-wvdh5utVeldWiX42fPWeIOc1DajnMdZd-es8VOxovNLQ4DR67YsGc927zojcrxO15b5dEFaV7Dr-Q1oYNZom0f1GzyLSeWWSSPVB1al7DbEmdJhmyDG_gs9RHRrda5Zhodb2aW4ushjbJsTVuQrzt3FVtGD98m_WFJUGfEfyMF2mc"/>
+        </div>
+        <div class="aspect-[3/4] bg-surface overflow-hidden translate-y-8">
+          <img alt="Detailed shot of natural burnt wood texture with glowing embers" class="w-full h-full object-cover grayscale opacity-50"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUiP-QIPKYw2fDLx2YHVRZ1h5REsuEx_d1vY84jVxQiXV4QkygLu_bD4Mv-4l4_aH55d0FdpJiaRFrn4e004k2gBSThUeZyOrzTIH8k6y6PBf9UClH82KpoDDzrAp7LLqBV8-lKsrDEadMIXrA8FOjwNQHxhBLD6VhNCob8LTEOzK-g7tXVcEgfPkoefpkt856U9_78KoPFiF7yeJeD1SkZ7KcxWgoyljmWpySi3lJMIeQQjto8GE3m0-7LS8K62at5xNIio5dkzTd"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter / Invitation -->
+  <section class="py-40 px-8 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#0e0e0e_100%)]"></div>
+    <div class="relative z-10 max-w-screen-xl mx-auto text-center">
+      <h3 class="font-headline text-4xl mb-12 italic">Join the Inner Circle</h3>
+      <form class="max-w-md mx-auto relative" method="post" action="#">
+        {% csrf_token %}
+        <input class="w-full bg-transparent border-0 border-b border-outline-variant/40 py-4 font-label text-[10px] tracking-[0.3em] text-on-surface focus:ring-0 focus:border-primary transition-colors placeholder:text-secondary-dim/40 text-center uppercase"
+               placeholder="YOUR EMAIL ADDRESS" type="email" name="email" id="newsletter-email"/>
+        <button class="mt-8 font-label text-[10px] uppercase tracking-[0.5em] text-primary hover:text-on-surface transition-colors duration-500" type="submit">
+          Request Access
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}

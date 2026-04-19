@@ -1,0 +1,129 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}About{% endblock %}
+{% block meta_description %}Based in the charred landscapes of the Pacific Northwest, Elena Vance explores the intersection of tactile reality and digital ephemerality.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .editorial-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; }
+  .textured-bg { background-image: radial-gradient(circle at 50% 50%, rgba(44,44,44,0.15) 0%, rgba(14,14,14,1) 100%); }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="pt-32 min-h-screen textured-bg">
+  <!-- Hero: The Portrait Section -->
+  <section class="max-w-screen-2xl mx-auto px-8 mb-32">
+    <div class="editorial-grid">
+      <div class="col-span-12 md:col-span-7 relative">
+        <div class="aspect-[4/5] overflow-hidden">
+          <img alt="Professional portrait of a visual artist in a dark studio, dramatic lighting"
+               class="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-1000"
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSSEEqSwIdzZmD2yEQI_szCNCUnxIq4uh2JakzcgkLl9mqpwO_XPGC27OBafLTFmIvY77u7q76-T8jD9C0X8I5uISLnL5cAgDpjPmIoG4E6saYsEVrjF2vAnGfRWeuiikBrthBnLD-Kqwy_egqlOMzJ7LvfvOfqrDpicvppkCW1k2cZPFnTCO4f0Bif7xjF201ALgNmpqmxnJPllTriyORX2M_cN_euW2nXZarJGpD1Yqdj8M0rKbgmCwtoc4FzBqlh4a8nGg8Xnjb"/>
+        </div>
+        <div class="absolute -bottom-8 -right-8 md:right-12 bg-surface-container p-8 md:p-12 max-w-sm">
+          <p class="font-label text-[10px] uppercase tracking-[0.3em] text-primary mb-4">Established 2012</p>
+          <h1 class="font-headline text-5xl md:text-7xl italic leading-none text-on-surface">Elena <br/>Vance</h1>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-5 flex flex-col justify-center pt-24 md:pt-0 md:pl-12">
+        <h2 class="font-label text-[10px] uppercase tracking-[0.4em] text-secondary-dim mb-8">The Curator's Note</h2>
+        <p class="font-headline text-2xl md:text-3xl text-on-surface-variant leading-relaxed mb-12 italic">
+          "Art is not a representation of the world, but an extraction of the soul's quietest vibrations."
+        </p>
+        <div class="space-y-6 text-on-surface-variant/80 font-body text-sm leading-loose max-w-md">
+          <p>Based in the charred landscapes of the Pacific Northwest, Elena Vance explores the intersection of tactile reality and digital ephemerality. Her work is a dialogue between the permanence of stone and the fleeting nature of light.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Journey: Tonal Shift Section -->
+  <section class="bg-surface-container-low py-32">
+    <div class="max-w-screen-2xl mx-auto px-8">
+      <div class="editorial-grid">
+        <div class="col-span-12 md:col-span-4 mb-16 md:mb-0">
+          <h2 class="font-headline text-4xl text-on-surface mb-6">The Journey</h2>
+          <div class="w-12 h-[2px] bg-primary mb-8"></div>
+          <p class="font-body text-sm text-secondary-dim leading-relaxed">From the architecture of Florence to the silicon valleys of the west, the path was never linear. It was a sculpting process—removing what was unnecessary to find the form beneath.</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="space-y-4">
+            <span class="font-headline italic text-primary-dim text-4xl opacity-40">01</span>
+            <h3 class="font-label uppercase tracking-widest text-xs text-on-surface">The Foundation</h3>
+            <p class="font-body text-xs text-on-surface-variant leading-relaxed">Early years spent studying classical sculpture in marble quarries, learning the weight of silence and the resistance of matter.</p>
+          </div>
+          <div class="space-y-4">
+            <span class="font-headline italic text-primary-dim text-4xl opacity-40">02</span>
+            <h3 class="font-label uppercase tracking-widest text-xs text-on-surface">The Digital Pivot</h3>
+            <p class="font-body text-xs text-on-surface-variant leading-relaxed">A transition into generative systems, where code became the new chisel, carving through data to find organic symmetry.</p>
+          </div>
+          <div class="space-y-4">
+            <span class="font-headline italic text-primary-dim text-4xl opacity-40">03</span>
+            <h3 class="font-label uppercase tracking-widest text-xs text-on-surface">The Obsidian Era</h3>
+            <p class="font-body text-xs text-on-surface-variant leading-relaxed">The current phase of synthesis. Merging physical charring techniques with digital light projections to create immersive gallery experiences.</p>
+          </div>
+          <div class="space-y-4">
+            <span class="font-headline italic text-primary-dim text-4xl opacity-40">04</span>
+            <h3 class="font-label uppercase tracking-widest text-xs text-on-surface">The Future</h3>
+            <p class="font-body text-xs text-on-surface-variant leading-relaxed">Exploring bio-materials and interactive neural art that responds to the presence of the viewer.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Behind the Art: Asymmetric Layout -->
+  <section class="py-32 overflow-hidden">
+    <div class="max-w-screen-2xl mx-auto px-8">
+      <div class="editorial-grid items-center">
+        <div class="col-span-12 md:col-span-5 order-2 md:order-1">
+          <h2 class="font-label text-[10px] uppercase tracking-[0.5em] text-primary mb-6">Process &amp; Texture</h2>
+          <h3 class="font-headline text-5xl md:text-6xl text-on-surface mb-8 leading-tight">Behind the Art</h3>
+          <p class="font-body text-on-surface-variant leading-loose mb-12">
+            The studio is a place of alchemy. Here, Shou Sugi Ban wood meets precision lasers. The scent of burnt cedar hangs heavy in the air, a reminder that creation often requires destruction. Every piece in the Obsidian series undergoes a rigorous process of charring, brushing, and digital mapping.
+          </p>
+          <a href="/gallery/" class="flex items-center gap-4 text-on-surface group">
+            <span class="font-label uppercase tracking-widest text-xs border-b border-primary/30 pb-1 group-hover:border-primary transition-all duration-300">View Studio Archive</span>
+            <span class="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform duration-300">arrow_forward</span>
+          </a>
+        </div>
+        <div class="col-span-12 md:col-span-7 order-1 md:order-2 mb-16 md:mb-0 relative">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="aspect-square bg-surface-container-high overflow-hidden">
+              <img alt="Extreme close-up of shou sugi ban charred wood texture" class="w-full h-full object-cover brightness-50"
+                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyBqTFeZUkZ3F5cDMU1wS-hzY86uUdrTkGtKKbzpjDY3N_Fovx-z7H6_HrNZoVNWXf9MXYgYYnEuwKRkFv8KukJ24Z_rnl30YHGuXXcQG7zGz0V78NADaXSrUh_B2nJgf2ywagbdncrrnFrXdmfs-JW75-jIi-Vukuy_ErQaRppCiqmgFY0O-gtEGfTRcK-NhZumlSV5cLrNAEa3o_1-5gl85Rj31_Ex7PaTEjdF6dxHdWymEaXS7c9QSAM_CaXe332aKmPl1mz8Eg"/>
+            </div>
+            <div class="aspect-square bg-surface-container-high overflow-hidden mt-12">
+              <img alt="Abstract wisps of white smoke rising against a pitch black background with subtle orange ember highlights"
+                   class="w-full h-full object-cover brightness-50"
+                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrjp0i4M3WiY6-BUtr1GN6Sin-pI7XClnNkdbKSQ7y2swP7ah0ACnCWJdSR5hw00tUI4bInaN2dNQOr4PUgedrcu4CA9y0bztzJ4EzYlKK10YaT-RarX-2MuWAkJXOZAr6DwKk__Hez6Z-l7AXj5RawFsJQa3IMSgzXMlJia4pwBWcOrD052jYrdttUgkxNJEwkMFeZWg1xDcsOzWjsMHqeYfeC3ymphIANy8nyaV9J_rlaf9sOWEnZNsKjNo_RTcOSafiPaxlVIWA"/>
+            </div>
+          </div>
+          <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 blur-[120px] rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The Art and the Artist: Narrative Split -->
+  <section class="pb-32">
+    <div class="max-w-screen-2xl mx-auto px-8">
+      <div class="editorial-grid">
+        <div class="col-span-12 md:col-span-6 border-l border-outline-variant/20 pl-8 md:pl-16 py-12">
+          <h4 class="font-headline italic text-2xl text-on-surface mb-6">The Art</h4>
+          <p class="font-body text-sm text-on-surface-variant leading-loose">
+            Obsidian is more than a name; it is a philosophy of density. The art produced here is intended to ground the viewer. In a world of flickering pixels, we provide the weight of the physical. Each piece is a monument to the moment it was created—uncopyable, heavy, and profound.
+          </p>
+        </div>
+        <div class="col-span-12 md:col-span-6 border-l border-outline-variant/20 pl-8 md:pl-16 py-12">
+          <h4 class="font-headline italic text-2xl text-on-surface mb-6">The Artist</h4>
+          <p class="font-body text-sm text-on-surface-variant leading-loose">
+            Elena Vance lives between states. A dual citizen of the physical and digital, she spends half her time in the workshop and half in the terminal. Her goal is to bridge the gap between the two, making digital art that feels like stone, and stone that behaves like light.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
