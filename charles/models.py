@@ -12,6 +12,13 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+from .uploads import (
+    avatar_upload_to,
+    document_upload_to,
+    validate_avatar_upload,
+    validate_document_upload,
+)
+
 
 class Profile(models.Model):
     """
@@ -34,6 +41,18 @@ class Profile(models.Model):
         max_length=500,
         blank=True,
         help_text="A short bio shown on your profile page (500 characters max).",
+    )
+    avatar = models.FileField(
+        upload_to=avatar_upload_to,
+        blank=True,
+        validators=[validate_avatar_upload],
+        help_text="PNG, JPEG, GIF, or WEBP only. Maximum size: 2 MB.",
+    )
+    document = models.FileField(
+        upload_to=document_upload_to,
+        blank=True,
+        validators=[validate_document_upload],
+        help_text="PDF only. Maximum size: 5 MB.",
     )
 
     class Meta:

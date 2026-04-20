@@ -1,6 +1,6 @@
 {% extends "charles/base.html" %}
 
-{% block title %}Profile — Charles Auth{% endblock %}
+{% block title %}Profile - Charles Auth{% endblock %}
 
 {% block body %}
 <form id="profile-form" method="post" novalidate>
@@ -28,8 +28,61 @@
     <button type="submit">Save Profile</button>
 </form>
 
+<form method="post" enctype="multipart/form-data" novalidate style="margin-top: 24px;">
+    {% csrf_token %}
+    <input type="hidden" name="upload_assets" value="1">
+    <h3 style="margin-bottom: 16px; color: #333;">Profile Files</h3>
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        {% if profile.avatar %}
+        <div style="margin-bottom: 16px;">
+            <p style="margin: 0 0 8px 0; color: #666;"><strong>Current avatar:</strong></p>
+            <img src="{% url 'charles:profile_avatar' %}" alt="Current avatar" style="max-width: 120px; max-height: 120px; border-radius: 8px; border: 1px solid #ddd; display: block;">
+        </div>
+        {% endif %}
+
+        {% if profile.document %}
+        <p style="margin: 0; color: #666;"><strong>Current document:</strong> <a href="{% url 'charles:profile_document' %}">Download PDF</a></p>
+        {% endif %}
+
+        {% if not profile.avatar and not profile.document %}
+        <p style="margin: 0; color: #666;">No profile files have been uploaded yet.</p>
+        {% endif %}
+    </div>
+
+    {% if asset_form.non_field_errors %}
+    <ul class="errorlist">
+        {% for error in asset_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="form-group">
+        <label for="{{ asset_form.avatar.id_for_label }}">Avatar</label>
+        {{ asset_form.avatar }}
+        {% if asset_form.avatar.errors %}
+        <ul class="errorlist">
+            {% for error in asset_form.avatar.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <small class="helptext">{{ asset_form.avatar.help_text }}</small>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ asset_form.document.id_for_label }}">Document</label>
+        {{ asset_form.document }}
+        {% if asset_form.document.errors %}
+        <ul class="errorlist">
+            {% for error in asset_form.document.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <small class="helptext">{{ asset_form.document.help_text }}</small>
+    </div>
+
+    <button type="submit">Upload Files</button>
+</form>
+
 <div class="nav-links">
-    <a href="{% url 'charles:dashboard' %}">← Back to Dashboard</a>
+    <a href="{% url 'charles:dashboard' %}">&#8592; Back to Dashboard</a>
 </div>
 
 <script>

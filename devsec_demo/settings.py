@@ -122,6 +122,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Uploaded profile files are stored under a private on-disk directory and are
+# only exposed through login-protected download views in the charles app.
+MEDIA_ROOT = BASE_DIR / 'private_media'
+MEDIA_URL = '/media/'
+
 # ---------------------------------------------------------------------------
 # Authentication routing
 # Docs: https://docs.djangoproject.com/en/5.2/ref/settings/#login-url

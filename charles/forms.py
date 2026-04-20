@@ -2,7 +2,7 @@
 charles/forms.py
 
 We build on Django's built-in auth forms rather than writing our own from
-scratch. This is intentional — those forms already handle password hashing,
+scratch. This is intentional - those forms already handle password hashing,
 timing-safe comparison, and validation in a battle-tested way.
 
 Docs: https://docs.djangoproject.com/en/5.2/topics/auth/default/#module-django.contrib.auth.forms
@@ -87,5 +87,41 @@ class ProfileUpdateForm(forms.ModelForm):
         model = Profile
         fields = ("bio",)
         widgets = {
-            "bio": forms.Textarea(attrs={"rows": 4, "placeholder": "Tell us a little about yourself…"}),
+            "bio": forms.Textarea(attrs={"rows": 4, "placeholder": "Tell us a little about yourself..."}),
         }
+
+
+class ProfileAssetForm(forms.ModelForm):
+    """
+    Lets users upload an avatar image or PDF document.
+
+    File validation lives on the model fields so the same rules apply in the
+    form, the admin, and any future save path that uses model validation.
+    """
+
+    class Meta:
+        model = Profile
+        fields = ("avatar", "document")
+        widgets = {
+            "avatar": forms.FileInput(
+                attrs={
+                    "accept": ".png,.jpg,.jpeg,.gif,.webp",
+                }
+            ),
+            "document": forms.FileInput(
+                attrs={
+                    "accept": ".pdf",
+                }
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if self.errors:
+            return cleaned_data
+
+        if not cleaned_data.get("avatar") and not cleaned_data.get("document"):
+            raise forms.ValidationError("Choose an avatar image or PDF document to upload.")
+
+        return cleaned_data

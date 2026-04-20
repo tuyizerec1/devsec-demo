@@ -14,7 +14,7 @@ class ProfileAdmin(admin.ModelAdmin):
     """
     Admin interface for user profiles.
     """
-    list_display = ('user', 'bio')
+    list_display = ("user", "avatar", "document")
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('user',)
 

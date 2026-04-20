@@ -4,24 +4,51 @@ Docs: https://docs.djangoproject.com/en/5.2/topics/auth/default/
 """
 
 import json
+import mimetypes
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import FileResponse, Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, ProfileUpdateForm, RegistrationForm
+from .forms import LoginForm, ProfileAssetForm, ProfileUpdateForm, RegistrationForm
 from .models import LoginAttempt, Profile
 
 
 LOCKOUT_THRESHOLD = 5
 LOCKOUT_DURATION = timedelta(minutes=15)
+
+
+def _guess_upload_content_type(file_name):
+    content_type, _ = mimetypes.guess_type(file_name)
+    if content_type:
+        return content_type
+
+    extension = Path(file_name).suffix.lower()
+    if extension == ".webp":
+        return "image/webp"
+    if extension == ".pdf":
+        return "application/pdf"
+    return "application/octet-stream"
+
+
+def _serve_profile_file(uploaded_file, attachment=False):
+    if not uploaded_file or not uploaded_file.name or not uploaded_file.storage.exists(uploaded_file.name):
+        raise Http404
+
+    file_handle = uploaded_file.open("rb")
+    response = FileResponse(file_handle, content_type=_guess_upload_content_type(uploaded_file.name))
+    disposition = "attachment" if attachment else "inline"
+    response["Content-Disposition"] = f'{disposition}; filename="{Path(uploaded_file.name).name}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 def get_safe_next_url(request):
@@ -131,15 +158,25 @@ def profile(request):
     profile_obj, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        form = ProfileUpdateForm(request.POST, instance=profile_obj)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Your profile has been updated.")
-            return redirect("charles:profile")
+        if request.FILES or request.POST.get("upload_assets"):
+            asset_form = ProfileAssetForm(request.POST, request.FILES, instance=profile_obj)
+            form = ProfileUpdateForm(instance=profile_obj)
+            if asset_form.is_valid():
+                asset_form.save()
+                messages.success(request, "Your profile files have been updated.")
+                return redirect("charles:profile")
+        else:
+            form = ProfileUpdateForm(request.POST, instance=profile_obj)
+            asset_form = ProfileAssetForm(instance=profile_obj)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Your profile has been updated.")
+                return redirect("charles:profile")
     else:
         form = ProfileUpdateForm(instance=profile_obj)
+        asset_form = ProfileAssetForm(instance=profile_obj)
 
-    return render(request, "charles/profile.html", {"form": form})
+    return render(request, "charles/profile.html", {"form": form, "asset_form": asset_form, "profile": profile_obj})
 
 
 @login_required
@@ -174,6 +211,18 @@ def update_profile_bio(request):
         )
 
     return JsonResponse({"ok": False, "errors": form.errors}, status=400)
+
+
+@login_required
+def profile_avatar(request):
+    profile_obj, _ = Profile.objects.get_or_create(user=request.user)
+    return _serve_profile_file(profile_obj.avatar, attachment=False)
+
+
+@login_required
+def profile_document(request):
+    profile_obj, _ = Profile.objects.get_or_create(user=request.user)
+    return _serve_profile_file(profile_obj.document, attachment=True)
 
 
 @login_required

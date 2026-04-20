@@ -62,6 +62,8 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/", views.profile, name="profile"),
     path("profile/update-bio/", views.update_profile_bio, name="profile_update_bio"),
+    path("profile/avatar/", views.profile_avatar, name="profile_avatar"),
+    path("profile/document/", views.profile_document, name="profile_document"),
     path("password-change/", views.password_change, name="password_change"),
     path("logout/", views.user_logout, name="logout"),
 ]

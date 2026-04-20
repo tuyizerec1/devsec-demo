@@ -9,15 +9,19 @@ Docs: https://docs.djangoproject.com/en/5.2/topics/testing/
 """
 
 import json
+import shutil
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import LoginAttempt, Profile
+from .uploads import MAX_AVATAR_UPLOAD_SIZE, MAX_DOCUMENT_UPLOAD_SIZE
 
 
 class RegistrationTests(TestCase):
@@ -409,6 +413,175 @@ class ProfileTests(TestCase):
         self.assertEqual(self.user.profile.bio, malicious_bio)
         self.assertContains(response, "&lt;script&gt;alert(1)&lt;/script&gt;", html=False)
         self.assertNotContains(response, malicious_bio, html=False)
+
+
+class ProfileUploadTests(TestCase):
+    """Test secure avatar and document upload handling."""
+
+    def setUp(self):
+        self.client = Client()
+        self.profile_url = reverse("charles:profile")
+        self.avatar_url = reverse("charles:profile_avatar")
+        self.document_url = reverse("charles:profile_document")
+        self.user = User.objects.create_user(
+            username="uploaduser",
+            email="upload@example.com",
+            password="SecurePass123!",
+        )
+
+        self.upload_root = Path(__file__).resolve().parent.parent / "private_media" / "test-profile-uploads"
+        self.upload_root.parent.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(self.upload_root, ignore_errors=True)
+        self.media_override = override_settings(MEDIA_ROOT=str(self.upload_root))
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(lambda: shutil.rmtree(self.upload_root, ignore_errors=True))
+
+    def _avatar_file(self, name="avatar.png", content_type="image/png"):
+        return SimpleUploadedFile(
+            name,
+            b"\x89PNG\r\n\x1a\nPNGDATA",
+            content_type=content_type,
+        )
+
+    def _document_file(self, name="document.pdf", content_type="application/pdf", body=None):
+        if body is None:
+            body = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF"
+        return SimpleUploadedFile(
+            name,
+            body,
+            content_type=content_type,
+        )
+
+    def test_avatar_upload_accepts_png_and_uses_private_filename(self):
+        self.client.login(username="uploaduser", password="SecurePass123!")
+        response = self.client.post(
+            self.profile_url,
+            {
+                "upload_assets": "1",
+                "avatar": self._avatar_file(),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.profile.avatar)
+        self.assertTrue(self.user.profile.avatar.name.startswith("profile-assets/"))
+        self.assertNotEqual(Path(self.user.profile.avatar.name).name, "avatar.png")
+
+        download = self.client.get(self.avatar_url)
+        self.assertEqual(download.status_code, 200)
+        self.assertEqual(download["Content-Type"], "image/png")
+        self.assertIn("inline", download["Content-Disposition"])
+        self.assertEqual(download["X-Content-Type-Options"], "nosniff")
+
+    def test_document_upload_accepts_pdf_and_serves_as_attachment(self):
+        self.client.login(username="uploaduser", password="SecurePass123!")
+        response = self.client.post(
+            self.profile_url,
+            {
+                "upload_assets": "1",
+                "document": self._document_file(),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.profile.document)
+        self.assertTrue(self.user.profile.document.name.startswith("profile-assets/"))
+        self.assertNotEqual(Path(self.user.profile.document.name).name, "document.pdf")
+
+        download = self.client.get(self.document_url)
+        self.assertEqual(download.status_code, 200)
+        self.assertEqual(download["Content-Type"], "application/pdf")
+        self.assertIn("attachment", download["Content-Disposition"])
+        self.assertEqual(download["X-Content-Type-Options"], "nosniff")
+
+    def test_avatar_upload_rejects_svg(self):
+        self.client.login(username="uploaduser", password="SecurePass123!")
+        bad_avatar = SimpleUploadedFile(
+            "avatar.svg",
+            b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+            content_type="image/svg+xml",
+        )
+        response = self.client.post(
+            self.profile_url,
+            {
+                "upload_assets": "1",
+                "avatar": bad_avatar,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.profile.avatar)
+        self.assertIsNotNone(response.context)
+        self.assertFormError(
+            response.context["asset_form"],
+            "avatar",
+            "Avatar uploads must be PNG, JPEG, GIF, or WEBP images.",
+        )
+
+    def test_avatar_upload_rejects_oversized_file(self):
+        self.client.login(username="uploaduser", password="SecurePass123!")
+        too_large_body = b"\x89PNG\r\n\x1a\n" + (b"a" * (MAX_AVATAR_UPLOAD_SIZE + 1))
+        too_large_avatar = SimpleUploadedFile(
+            "avatar.png",
+            too_large_body,
+            content_type="image/png",
+        )
+        response = self.client.post(
+            self.profile_url,
+            {
+                "upload_assets": "1",
+                "avatar": too_large_avatar,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.profile.avatar)
+        self.assertIsNotNone(response.context)
+        self.assertFormError(
+            response.context["asset_form"],
+            "avatar",
+            "Avatar files must be 2 MB or smaller.",
+        )
+
+    def test_document_upload_rejects_oversized_file(self):
+        self.client.login(username="uploaduser", password="SecurePass123!")
+        too_large_body = b"%PDF-" + (b"a" * (MAX_DOCUMENT_UPLOAD_SIZE + 1))
+        response = self.client.post(
+            self.profile_url,
+            {
+                "upload_assets": "1",
+                "document": self._document_file(body=too_large_body),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.profile.document)
+        self.assertIsNotNone(response.context)
+        self.assertFormError(
+            response.context["asset_form"],
+            "document",
+            "Document files must be 5 MB or smaller.",
+        )
+
+    def test_profile_asset_downloads_require_login(self):
+        response = self.client.get(self.avatar_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("charles:login"), response.url)
+
+        response = self.client.get(self.document_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("charles:login"), response.url)
 
 
 class ProfileAjaxCsrfTests(TestCase):
