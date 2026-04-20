@@ -41,20 +41,47 @@
       <div class="bg-surface-container-low p-12 lg:p-20 relative">
         <!-- Subtle Ambient Glow -->
         <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary-container opacity-10 blur-[100px] pointer-events-none"></div>
-        <form class="space-y-12 relative z-10" method="post" action="#">
+
+        {% if messages %}
+        <div class="relative z-10 mb-10 space-y-4">
+          {% for message in messages %}
+          <div class="border border-primary/20 bg-primary-container/10 px-4 py-3 text-sm text-primary-fixed-dim">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form class="space-y-12 relative z-10" method="post" enctype="multipart/form-data" novalidate>
           {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <ul class="errorlist mb-4">
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+          {% endif %}
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div class="space-y-2">
-              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-name">Your Identity</label>
-              <input id="contact-name" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body transition-all"
-                     placeholder="NAME / ORGANIZATION" type="text" name="name"/>
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="{{ form.name.id_for_label }}">Your Identity</label>
+              {{ form.name }}
+              {% if form.name.errors %}
+              <ul class="errorlist">
+                {% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+              {% endif %}
             </div>
             <div class="space-y-2">
-              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-email">Digital Coordinates</label>
-              <input id="contact-email" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body transition-all"
-                     placeholder="EMAIL ADDRESS" type="email" name="email"/>
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="{{ form.email.id_for_label }}">Digital Coordinates</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+              <ul class="errorlist">
+                {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+              {% endif %}
             </div>
           </div>
+
           <div class="space-y-2">
             <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]">The Nature of Inquiry</label>
             <div class="flex flex-wrap gap-4 pt-4">
@@ -63,17 +90,46 @@
               <button class="px-6 py-2 border border-outline-variant/20 text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all" type="button">Press</button>
             </div>
           </div>
+
           <div class="space-y-2">
-            <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="contact-message">The Message</label>
-            <textarea id="contact-message" class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:ring-0 focus:border-primary text-on-surface placeholder:text-outline/40 py-4 font-body resize-none transition-all"
-                      placeholder="DESCRIBE YOUR VISION..." rows="4" name="message"></textarea>
+            <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="{{ form.message.id_for_label }}">The Message</label>
+            {{ form.message }}
+            {% if form.message.errors %}
+            <ul class="errorlist">
+              {% for error in form.message.errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+            {% endif %}
           </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-2">
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="{{ form.avatar.id_for_label }}">Avatar Upload</label>
+              {{ form.avatar }}
+              {% if form.avatar.errors %}
+              <ul class="errorlist">
+                {% for error in form.avatar.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+              {% endif %}
+              <small class="text-secondary-dim text-xs leading-relaxed block">{{ form.avatar.help_text }}</small>
+            </div>
+            <div class="space-y-2">
+              <label class="text-secondary font-label text-[10px] uppercase tracking-[0.2em]" for="{{ form.document.id_for_label }}">Document Upload</label>
+              {{ form.document }}
+              {% if form.document.errors %}
+              <ul class="errorlist">
+                {% for error in form.document.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+              {% endif %}
+              <small class="text-secondary-dim text-xs leading-relaxed block">{{ form.document.help_text }}</small>
+            </div>
+          </div>
+
           <div class="pt-8 flex items-center justify-between">
             <button class="bg-gradient-to-r from-primary to-primary-dim px-12 py-5 text-on-primary font-label text-[11px] uppercase tracking-[0.3em] font-bold hover:brightness-110 transition-all" type="submit">
               Dispatch Message
             </button>
             <div class="hidden sm:flex items-center gap-4 text-on-surface-variant group">
-              <span class="text-[10px] uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Privacy Policy</span>
+              <span class="text-[10px] uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Stored privately</span>
               <span class="material-symbols-outlined text-sm">north_east</span>
             </div>
           </div>

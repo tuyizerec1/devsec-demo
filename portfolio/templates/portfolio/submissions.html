@@ -1,0 +1,78 @@
+{% extends 'portfolio/base.html' %}
+
+{% block title %}Submissions{% endblock %}
+{% block meta_description %}Private staff review page for uploaded avatars and documents.{% endblock %}
+
+{% block content %}
+<main class="pt-32 pb-24 min-h-screen gallery-gradient">
+  <header class="px-8 max-w-screen-2xl mx-auto mb-24 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+    <div class="md:col-span-7">
+      <p class="text-primary text-[10px] uppercase tracking-[0.4em] mb-4 font-label">Staff Review</p>
+      <h1 class="text-6xl md:text-8xl font-headline italic font-light leading-tight tracking-tight text-on-surface">
+        Private <span class="text-primary-dim">Submissions</span>.
+      </h1>
+    </div>
+    <div class="md:col-span-4 md:col-start-9 pb-2">
+      <p class="text-on-surface-variant font-body text-sm leading-relaxed max-w-sm">
+        Uploaded avatars and documents are stored privately and can only be reviewed by staff through authenticated download views.
+      </p>
+    </div>
+  </header>
+
+  <section class="px-8 max-w-screen-2xl mx-auto">
+    {% if submissions %}
+    <div class="space-y-8">
+      {% for submission in submissions %}
+      <article class="bg-surface-container-low border border-outline-variant/20 p-8 md:p-10">
+        <div class="flex flex-col lg:flex-row gap-10">
+          <div class="lg:w-1/3 space-y-4">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 bg-surface-container-high flex items-center justify-center text-primary font-label text-[10px] uppercase tracking-widest">
+                {{ submission.name|slice:":2"|upper }}
+              </div>
+              <div>
+                <h2 class="text-3xl font-headline italic">{{ submission.name }}</h2>
+                <p class="text-on-surface-variant text-sm">{{ submission.email }}</p>
+              </div>
+            </div>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-secondary-dim">
+              Submitted {{ submission.created_at|date:"M j, Y g:i a" }}
+            </p>
+            <div class="flex flex-wrap gap-3">
+              {% if submission.avatar %}
+              <a class="px-4 py-2 border border-outline-variant/30 text-[10px] uppercase tracking-[0.2em] text-on-surface hover:text-primary hover:border-primary transition-colors"
+                 href="{% url 'portfolio:submission_avatar' submission.public_id %}">
+                View Avatar
+              </a>
+              {% endif %}
+              {% if submission.document %}
+              <a class="px-4 py-2 border border-outline-variant/30 text-[10px] uppercase tracking-[0.2em] text-on-surface hover:text-primary hover:border-primary transition-colors"
+                 href="{% url 'portfolio:submission_document' submission.public_id %}">
+                Download PDF
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="lg:w-2/3">
+            <p class="text-on-surface-variant leading-relaxed whitespace-pre-line">{{ submission.message }}</p>
+            {% if submission.avatar %}
+            <div class="mt-8">
+              <img src="{% url 'portfolio:submission_avatar' submission.public_id %}"
+                   alt="Avatar from {{ submission.name }}"
+                   class="w-full max-w-xs border border-outline-variant/20 bg-surface-container">
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-surface-container-low border border-outline-variant/20 p-10 text-center">
+      <p class="text-on-surface-variant">No submissions have been received yet.</p>
+    </div>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

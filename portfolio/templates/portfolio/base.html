@@ -97,6 +97,9 @@
       <a class="{% if request.resolver_match.url_name == 'gallery' %}text-[#ffb68d] font-serif{% else %}text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d]{% endif %} transition-colors duration-500 hover:-translate-y-[2px]" href="/gallery/">Gallery</a>
       <a class="{% if request.resolver_match.url_name == 'about' %}text-[#ffb68d] font-serif{% else %}text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d]{% endif %} transition-colors duration-500 hover:-translate-y-[2px]" href="/about/">About</a>
       <a class="{% if request.resolver_match.url_name == 'contact' %}text-[#ffb68d] font-serif{% else %}text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d]{% endif %} transition-colors duration-500 hover:-translate-y-[2px]" href="/contact/">Contact</a>
+      {% if request.user.is_staff %}
+      <a class="{% if request.resolver_match.url_name == 'submissions_review' %}text-[#ffb68d] font-serif{% else %}text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d]{% endif %} transition-colors duration-500 hover:-translate-y-[2px]" href="{% url 'portfolio:submissions_review' %}">Submissions</a>
+      {% endif %}
     </div>
     <div class="flex items-center gap-4">
       <button id="mobile-menu-toggle" class="text-[#ffb68d] p-1 transition-transform duration-500 hover:translate-y-[2px]">
@@ -109,6 +112,9 @@
     <a class="text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d] transition-colors" href="/gallery/">Gallery</a>
     <a class="text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d] transition-colors" href="/about/">About</a>
     <a class="text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d] transition-colors" href="/contact/">Contact</a>
+    {% if request.user.is_staff %}
+    <a class="text-[#acabaa] font-['Manrope'] uppercase tracking-widest text-[10px] hover:text-[#ffb68d] transition-colors" href="{% url 'portfolio:submissions_review' %}">Submissions</a>
+    {% endif %}
   </div>
 </nav>
 
