@@ -169,7 +169,6 @@ def update_profile_bio(request):
         return JsonResponse(
             {
                 "ok": True,
-                "bio": profile.bio,
                 "message": "Your profile has been updated.",
             }
         )

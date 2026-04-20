@@ -393,6 +393,23 @@ class ProfileTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.bio, "Hello, I'm a test user.")
 
+    def test_profile_bio_is_rendered_as_escaped_text(self):
+        """Stored profile text should not be able to break out of the page."""
+        malicious_bio = "<script>alert(1)</script>"
+
+        self.client.login(username="testuser", password="SecurePass123!")
+        response = self.client.post(
+            self.profile_url,
+            {"bio": malicious_bio},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.bio, malicious_bio)
+        self.assertContains(response, "&lt;script&gt;alert(1)&lt;/script&gt;", html=False)
+        self.assertNotContains(response, malicious_bio, html=False)
+
 
 class ProfileAjaxCsrfTests(TestCase):
     """Test CSRF enforcement for the custom AJAX profile update flow."""
@@ -435,7 +452,6 @@ class ProfileAjaxCsrfTests(TestCase):
             response.content,
             {
                 "ok": True,
-                "bio": "Updated over AJAX",
                 "message": "Your profile has been updated.",
             },
         )
