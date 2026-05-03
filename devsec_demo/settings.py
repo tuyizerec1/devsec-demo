@@ -10,8 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
+import warnings
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,16 +22,78 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# Environment variables (set in .env for development, in the host for production)
+# ---------------------------------------------------------------------------
+# DJANGO_SECRET_KEY     Required in production. A development-only placeholder
+#                       is used only when DEBUG=True.
+# DJANGO_DEBUG          '1' / 'true' / 'yes' => True; anything else => False.
+# DJANGO_ALLOWED_HOSTS  Comma-separated list of allowed hostnames. Required
+#                       when DEBUG=False.
+# DJANGO_HTTPS          '1' / 'true' / 'yes' => enable HTTPS enforcement.
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
+def _env(key, default=None):
+    return os.environ.get(key, default)
+
+
+def _env_bool(key, default=False):
+    val = os.environ.get(key)
+    if val is None:
+        return default
+    return val.strip().lower() in ('1', 'true', 'yes')
+
+
+# Core environment-driven security settings
+DEBUG = _env_bool('DJANGO_DEBUG', default=False)
+
+_secret_key = _env('DJANGO_SECRET_KEY')
+if not _secret_key:
+    if DEBUG:
+        warnings.warn(
+            'DJANGO_SECRET_KEY is not set. A weak development placeholder is in use. '
+            'Generate and export a strong secret key before deploying to production.',
+            stacklevel=2,
+        )
+        _secret_key = 'dev-only-insecure-placeholder'
+    else:
+        raise ImproperlyConfigured(
+            'DJANGO_SECRET_KEY environment variable must be set when DEBUG=False. '
+            'Generate one with: python -c "from django.core.management.utils import '
+            'get_random_secret_key; print(get_random_secret_key())"'
+        )
+SECRET_KEY = _secret_key
+
+_raw_hosts = _env('DJANGO_ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [host.strip() for host in _raw_hosts.split(',') if host.strip()]
+if not ALLOWED_HOSTS:
+    if DEBUG:
+        ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'testserver']
+    else:
+        raise ImproperlyConfigured(
+            'DJANGO_ALLOWED_HOSTS environment variable must be set when DEBUG=False. '
+            'Example: DJANGO_ALLOWED_HOSTS=example.com,www.example.com'
+        )
+
+_https = _env_bool('DJANGO_HTTPS', default=False)
+SECURE_SSL_REDIRECT = _https
+SECURE_HSTS_SECONDS = 31_536_000 if _https else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _https
+SECURE_HSTS_PRELOAD = _https
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = _https
+CSRF_COOKIE_SECURE = _https
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 3600
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG')
-
-ALLOWED_HOSTS = ['localhost', 'pelino.life']
+# DEBUG is intentionally parsed explicitly above.
+#
+# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 
 # Application definition
@@ -42,7 +106,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'portfolio',
-    'easyaudit',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +116,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
 ROOT_URLCONF = 'devsec_demo.urls'
@@ -123,5 +185,4 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-
-STATIC_ROOT = os.path.join(BASE_DIR, '/static')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
